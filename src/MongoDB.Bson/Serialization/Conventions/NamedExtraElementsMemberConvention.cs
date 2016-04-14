@@ -27,7 +27,10 @@ namespace MongoDB.Bson.Serialization.Conventions
     {
         // private fields
         private readonly IEnumerable<string> _names;
+
+#if !NET_CORE
         private readonly MemberTypes _memberTypes;
+#endif
         private readonly BindingFlags _bindingFlags;
 
         // constructors
@@ -36,7 +39,7 @@ namespace MongoDB.Bson.Serialization.Conventions
         /// </summary>
         /// <param name="name">The name of the extra elements member.</param>
         public NamedExtraElementsMemberConvention(string name)
-            : this(new [] { name })
+            : this(new[] { name })
         { }
 
         /// <summary>
@@ -47,6 +50,7 @@ namespace MongoDB.Bson.Serialization.Conventions
             : this(names, BindingFlags.Instance | BindingFlags.Public)
         { }
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the <see cref="NamedExtraElementsMemberConvention" /> class.
         /// </summary>
@@ -65,6 +69,9 @@ namespace MongoDB.Bson.Serialization.Conventions
             : this(names, MemberTypes.Field | MemberTypes.Property, bindingFlags)
         { }
 
+#endif
+
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the <see cref="NamedExtraElementsMemberConvention" /> class.
         /// </summary>
@@ -72,7 +79,19 @@ namespace MongoDB.Bson.Serialization.Conventions
         /// <param name="memberTypes">The member types.</param>
         /// <param name="bindingFlags">The binding flags.</param>
         /// <exception cref="System.ArgumentNullException"></exception>
-        public NamedExtraElementsMemberConvention(IEnumerable<string> names, MemberTypes memberTypes, BindingFlags bindingFlags)
+#else
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NamedExtraElementsMemberConvention" /> class.
+        /// </summary>
+        /// <param name="names">The names.</param>
+        /// <param name="bindingFlags">The binding flags.</param>
+        /// <exception cref="System.ArgumentNullException"></exception>
+#endif
+        public NamedExtraElementsMemberConvention(IEnumerable<string> names,
+#if !NET_CORE
+            MemberTypes memberTypes,
+#endif
+            BindingFlags bindingFlags)
         {
             if (names == null)
             {
@@ -80,7 +99,10 @@ namespace MongoDB.Bson.Serialization.Conventions
             }
 
             _names = names;
+
+#if !NET_CORE
             _memberTypes = memberTypes;
+#endif
             _bindingFlags = bindingFlags | BindingFlags.DeclaredOnly;
         }
 
@@ -93,6 +115,7 @@ namespace MongoDB.Bson.Serialization.Conventions
         {
             foreach (var name in _names)
             {
+#if !NET_CORE
                 var member = classMap.ClassType.GetMember(name, _memberTypes, _bindingFlags).SingleOrDefault();
 
                 if (member != null)
@@ -118,6 +141,31 @@ namespace MongoDB.Bson.Serialization.Conventions
                         return;
                     }
                 }
+#else
+                var fieldInfo = classMap.ClassType.GetField(name, _bindingFlags);
+                Type memberType = null;
+                MemberInfo member = null;
+                if (fieldInfo != null)
+                {
+                    memberType = fieldInfo.FieldType;
+                    member = fieldInfo;
+                }
+                else
+                {
+                    var propertyInfo = classMap.ClassType.GetProperty(name, _bindingFlags);
+                    if (propertyInfo != null)
+                    {
+                        memberType = propertyInfo.PropertyType;
+                        member = propertyInfo;
+                    }
+                }
+
+                if (memberType != null && (memberType == typeof(BsonDocument) || typeof(IDictionary<string, object>).IsAssignableFrom(memberType)))
+                {
+                    classMap.MapExtraElementsMember(member);
+                    return;
+                }
+#endif
             }
         }
     }

@@ -71,19 +71,29 @@ namespace MongoDB.Bson.Serialization.Attributes
         /// <returns>A serializer for the type.</returns>
         internal IBsonSerializer CreateSerializer(Type type)
         {
+#if !NET_CORE
             if (type.ContainsGenericParameters)
+#else
+            if (type.GetTypeInfo().ContainsGenericParameters)
+#endif
             {
                 var message = "Cannot create a serializer because the type to serialize is an open generic type.";
                 throw new InvalidOperationException(message);
             }
-
+#if !NET_CORE
             if (_serializerType.ContainsGenericParameters && !type.IsGenericType)
+#else
+            if (_serializerType.GetTypeInfo().ContainsGenericParameters && !type.GetTypeInfo().IsGenericType)
+#endif
             {
                 var message = "Cannot create a serializer because the serializer type is an open generic type and the type to serialize is not generic.";
                 throw new InvalidOperationException(message);
             }
-
+#if !NET_CORE
             if (_serializerType.ContainsGenericParameters)
+#else
+            if (_serializerType.GetTypeInfo().ContainsGenericParameters)
+#endif
             {
                 var genericArguments = type.GetGenericArguments();
                 var closedSerializerType = _serializerType.MakeGenericType(genericArguments);

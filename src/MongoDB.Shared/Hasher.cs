@@ -19,7 +19,7 @@ using System.Collections.Generic;
 
 namespace MongoDB.Shared
 {
-    internal class Hasher
+    public class Hasher
     {
         // private fields
         private int _hashCode;

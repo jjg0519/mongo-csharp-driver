@@ -15,6 +15,7 @@
 
 using System;
 using MongoDB.Bson.Serialization.Serializers;
+using System.Reflection;
 
 namespace MongoDB.Bson.Serialization
 {
@@ -30,13 +31,20 @@ namespace MongoDB.Bson.Serialization
             {
                 throw new ArgumentNullException("type");
             }
+#if !NET_CORE            
             if (type.IsGenericType && type.ContainsGenericParameters)
+#else
+            if (type.GetTypeInfo().IsGenericType && type.GetTypeInfo().ContainsGenericParameters)                           
+#endif
             {
                 var message = string.Format("Generic type {0} has unassigned type parameters.", BsonUtils.GetFriendlyTypeName(type));
                 throw new ArgumentException(message, "type");
             }
-
+#if !NET_CORE 
             if (type.IsInterface)
+#else
+            if (type.GetTypeInfo().IsInterface)
+#endif
             {
                 var serializerTypeDefinition = typeof(DiscriminatedInterfaceSerializer<>);
                 return CreateGenericSerializer(serializerTypeDefinition, new[] { type }, serializerRegistry);

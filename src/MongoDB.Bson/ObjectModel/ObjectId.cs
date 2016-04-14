@@ -20,19 +20,26 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using MongoDB.Shared;
 
 namespace MongoDB.Bson
 {
     /// <summary>
     /// Represents an ObjectId (see also BsonObjectId).
     /// </summary>
-    [Serializable]
+    //[Serializable]
     public struct ObjectId : IComparable<ObjectId>, IEquatable<ObjectId>, IConvertible
     {
         // private static fields
         private static ObjectId __emptyInstance = default(ObjectId);
+#if !NET_CORE        
         private static int __staticMachine = (GetMachineHash() + AppDomain.CurrentDomain.Id) & 0x00ffffff;
         private static short __staticPid = GetPid();
+#else
+        private static int __staticMachine = (GetMachineHash() + Thread.CurrentThread.ManagedThreadId) & 0x00ffffff;
+        private static int __staticPid = Thread.CurrentThread.ManagedThreadId;
+#endif
+    
         private static int __staticIncrement = (new Random()).Next();
 
         // private fields
@@ -76,7 +83,7 @@ namespace MongoDB.Bson
         /// <param name="machine">The machine hash.</param>
         /// <param name="pid">The PID.</param>
         /// <param name="increment">The increment.</param>
-        public ObjectId(DateTime timestamp, int machine, short pid, int increment)
+        public ObjectId(DateTime timestamp, int machine, int pid, int increment)
             : this(GetTimestampFromDateTime(timestamp), machine, pid, increment)
         {
         }
@@ -88,7 +95,7 @@ namespace MongoDB.Bson
         /// <param name="machine">The machine hash.</param>
         /// <param name="pid">The PID.</param>
         /// <param name="increment">The increment.</param>
-        public ObjectId(int timestamp, int machine, short pid, int increment)
+        public ObjectId(int timestamp, int machine, int pid, int increment)
         {
             if ((machine & 0xff000000) != 0)
             {
@@ -374,6 +381,7 @@ namespace MongoDB.Bson
             increment = (bytes[9] << 16) + (bytes[10] << 8) + bytes[11];
         }
 
+#if !NET_CORE
         // private static methods
         /// <summary>
         /// Gets the current process id.  This method exists because of how CAS operates on the call stack, checking
@@ -385,13 +393,7 @@ namespace MongoDB.Bson
         {
             return Process.GetCurrentProcess().Id;
         }
-
-        private static int GetMachineHash()
-        {
-            var hostName = Environment.MachineName; // use instead of Dns.HostName so it will work offline
-            return 0x00ffffff & hostName.GetHashCode(); // use first 3 bytes of hash
-        }
-
+        
         private static short GetPid()
         {
             try
@@ -402,6 +404,13 @@ namespace MongoDB.Bson
             {
                 return 0;
             }
+        }
+#endif
+
+        private static int GetMachineHash()
+        {
+            var hostName = Environment.MachineName; // use instead of Dns.HostName so it will work offline
+            return 0x00ffffff & hostName.GetHashCode(); // use first 3 bytes of hash
         }
 
         private static int GetTimestampFromDateTime(DateTime timestamp)
@@ -597,7 +606,12 @@ namespace MongoDB.Bson
 
         object IConvertible.ToType(Type conversionType, IFormatProvider provider)
         {
-            switch (Type.GetTypeCode(conversionType))
+#if !NET_CORE
+            var typeCode = Type.GetTypeCode(conversionType);
+#else
+            var typeCode = conversionType.GetTypeCode();
+#endif
+            switch (typeCode)
             {
                 case TypeCode.String:
                     return ((IConvertible)this).ToString(provider);

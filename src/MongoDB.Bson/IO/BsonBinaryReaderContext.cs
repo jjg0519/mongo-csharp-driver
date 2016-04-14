@@ -1,4 +1,4 @@
-﻿/* Copyright 2010-2016 MongoDB Inc.
+﻿/* Copyright 2010-2014 MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,18 +14,17 @@
 */
 
 using System;
+using System.IO;
 
 namespace MongoDB.Bson.IO
 {
     internal class BsonBinaryReaderContext
     {
         // private fields
-        private readonly BsonBinaryReaderContext _parentContext;
-        private readonly ContextType _contextType;
-        private readonly long _startPosition;
-        private readonly long _size;
-        private string _currentElementName;
-        private int _currentArrayIndex = -1;
+        private BsonBinaryReaderContext _parentContext;
+        private ContextType _contextType;
+        private long _startPosition;
+        private long _size;
 
         // constructors
         internal BsonBinaryReaderContext(
@@ -40,27 +39,10 @@ namespace MongoDB.Bson.IO
             _size = size;
         }
 
-        // public properties
-        public ContextType ContextType
+        // internal properties
+        internal ContextType ContextType
         {
             get { return _contextType; }
-        }
-
-        public int CurrentArrayIndex
-        {
-            get { return _currentArrayIndex; }
-            set { _currentArrayIndex = value; }
-        }
-
-        public string CurrentElementName
-        {
-            get { return _currentElementName; }
-            set { _currentElementName = value; }
-        }
-
-        public BsonBinaryReaderContext ParentContext
-        {
-            get { return _parentContext; }
         }
 
         // public methods

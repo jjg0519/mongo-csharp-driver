@@ -21,7 +21,7 @@ namespace MongoDB.Bson
     /// <summary>
     /// Represents a truncation exception.
     /// </summary>
-    [Serializable]
+    //[Serializable]
     public class TruncationException : BsonException
     {
         // constructors
@@ -52,6 +52,7 @@ namespace MongoDB.Bson
         {
         }
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the TruncationException class (this overload used by deserialization).
         /// </summary>
@@ -61,5 +62,6 @@ namespace MongoDB.Bson
             : base(info, context)
         {
         }
+#endif        
     }
 }

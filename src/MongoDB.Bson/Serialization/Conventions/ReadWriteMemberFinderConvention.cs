@@ -24,8 +24,9 @@ namespace MongoDB.Bson.Serialization.Conventions
     {
         // private fields
         private readonly BindingFlags _bindingFlags;
+#if !NET_CORE 
         private readonly MemberTypes _memberTypes;
-
+#endif
         // constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadWriteMemberFinderConvention" /> class.
@@ -34,6 +35,7 @@ namespace MongoDB.Bson.Serialization.Conventions
             : this(BindingFlags.Instance | BindingFlags.Public)
         { }
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadWriteMemberFinderConvention" /> class.
         /// </summary>
@@ -49,15 +51,29 @@ namespace MongoDB.Bson.Serialization.Conventions
         public ReadWriteMemberFinderConvention(BindingFlags bindingFlags)
             : this(MemberTypes.Field | MemberTypes.Property, bindingFlags)
         { }
+#endif
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the <see cref="ReadWriteMemberFinderConvention" /> class.
         /// </summary>
         /// <param name="memberTypes">The member types.</param>
         /// <param name="bindingFlags">The binding flags.</param>
-        public ReadWriteMemberFinderConvention(MemberTypes memberTypes, BindingFlags bindingFlags)
+#else
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ReadWriteMemberFinderConvention" /> class.
+        /// </summary>
+        /// <param name="bindingFlags">The binding flags.</param>
+#endif
+        public ReadWriteMemberFinderConvention(
+#if !NET_CORE
+            MemberTypes memberTypes,
+#endif
+            BindingFlags bindingFlags)
         {
+#if !NET_CORE
             _memberTypes = memberTypes;
+#endif
             _bindingFlags = bindingFlags | BindingFlags.DeclaredOnly;
         }
 
@@ -71,6 +87,7 @@ namespace MongoDB.Bson.Serialization.Conventions
             // order is important for backwards compatibility and GetMembers changes the order of finding things.
             // hence, we'll check member types explicitly instead of letting GetMembers handle it.
 
+#if !NET_CORE
             if ((_memberTypes & MemberTypes.Field) == MemberTypes.Field)
             {
                 var fields = classMap.ClassType.GetFields(_bindingFlags);
@@ -79,15 +96,20 @@ namespace MongoDB.Bson.Serialization.Conventions
                     MapField(classMap, field);
                 }
             }
+#endif
 
+#if !NET_CORE
             if ((_memberTypes & MemberTypes.Property) == MemberTypes.Property)
             {
+#endif
                 var properties = classMap.ClassType.GetProperties(_bindingFlags);
                 foreach (var property in properties)
                 {
                     MapProperty(classMap, property);
                 }
+#if !NET_CORE
             }
+#endif
         }
 
         // private methods

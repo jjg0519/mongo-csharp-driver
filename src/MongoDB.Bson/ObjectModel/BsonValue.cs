@@ -22,7 +22,7 @@ namespace MongoDB.Bson
     /// <summary>
     /// Represents a BSON value (this is an abstract class, see the various subclasses).
     /// </summary>
-    [Serializable]
+    //[Serializable]
     public abstract class BsonValue : IComparable<BsonValue>, IConvertible, IEquatable<BsonValue>
     {
         // private static fields

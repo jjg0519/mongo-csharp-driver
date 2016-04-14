@@ -20,7 +20,7 @@ namespace MongoDB.Bson.IO
     /// <summary>
     /// Represents settings for a BsonDocumentReader.
     /// </summary>
-    [Serializable]
+    //[Serializable]
     public class BsonDocumentReaderSettings : BsonReaderSettings
     {
         // private static fields

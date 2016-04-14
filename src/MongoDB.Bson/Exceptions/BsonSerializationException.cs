@@ -21,7 +21,7 @@ namespace MongoDB.Bson
     /// <summary>
     /// Represents a BSON serialization exception.
     /// </summary>
-    [Serializable]
+    //[Serializable]
     public class BsonSerializationException : BsonException
     {
         // constructors
@@ -52,6 +52,7 @@ namespace MongoDB.Bson
         {
         }
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the BsonSerializationException class (this overload used by deserialization).
         /// </summary>
@@ -61,5 +62,6 @@ namespace MongoDB.Bson
             : base(info, context)
         {
         }
+#endif        
     }
 }

@@ -27,7 +27,9 @@ namespace MongoDB.Bson.Serialization.Conventions
     {
         // private fields
         private readonly IEnumerable<string> _names;
+#if !NET_CORE
         private readonly MemberTypes _memberTypes;
+#endif
         private readonly BindingFlags _bindingFlags;
 
         // constructors
@@ -47,6 +49,7 @@ namespace MongoDB.Bson.Serialization.Conventions
             : this(names, BindingFlags.Instance | BindingFlags.Public)
         { }
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the <see cref="NamedIdMemberConvention" /> class.
         /// </summary>
@@ -64,7 +67,9 @@ namespace MongoDB.Bson.Serialization.Conventions
         public NamedIdMemberConvention(IEnumerable<string> names, BindingFlags bindingFlags)
             : this(names, MemberTypes.Field | MemberTypes.Property, bindingFlags)
         { }
+#endif
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the <see cref="NamedIdMemberConvention" /> class.
         /// </summary>
@@ -72,7 +77,19 @@ namespace MongoDB.Bson.Serialization.Conventions
         /// <param name="memberTypes">The member types.</param>
         /// <param name="bindingFlags">The binding flags.</param>
         /// <exception cref="System.ArgumentNullException"></exception>
-        public NamedIdMemberConvention(IEnumerable<string> names, MemberTypes memberTypes, BindingFlags bindingFlags)
+#else
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NamedIdMemberConvention" /> class.
+        /// </summary>
+        /// <param name="names">The names.</param>
+        /// <param name="bindingFlags">The binding flags.</param>
+        /// <exception cref="System.ArgumentNullException"></exception>
+#endif
+        public NamedIdMemberConvention(IEnumerable<string> names,
+#if !NET_CORE
+            MemberTypes memberTypes,
+#endif
+            BindingFlags bindingFlags)
         {
             if (names == null)
             {
@@ -80,7 +97,9 @@ namespace MongoDB.Bson.Serialization.Conventions
             }
 
             _names = names;
+#if !NET_CORE
             _memberTypes = memberTypes;
+#endif
             _bindingFlags = bindingFlags | BindingFlags.DeclaredOnly;
         }
 
@@ -93,8 +112,9 @@ namespace MongoDB.Bson.Serialization.Conventions
         {
             foreach (var name in _names)
             {
+#if !NET_CORE
                 var member = classMap.ClassType.GetMember(name, _memberTypes, _bindingFlags).SingleOrDefault();
-
+ 
                 if (member != null)
                 {
                     if (IsValidIdMember(classMap, member))
@@ -103,8 +123,34 @@ namespace MongoDB.Bson.Serialization.Conventions
                         return;
                     }
                 }
+#else
+                var field = classMap.ClassType.GetField(name, _bindingFlags);
+                if (field != null)
+                {
+                    classMap.MapIdMember(field);
+                }
+                else
+                {
+                    var property = classMap.ClassType.GetProperty(name, _bindingFlags);
+                    if (property != null)
+                    {
+                        var getMethodInfo = property.GetGetMethod(true);
+                        if (getMethodInfo.IsVirtual && getMethodInfo.DeclaringType != classMap.ClassType)
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            classMap.MapIdMember(property);
+                            return;
+                        }
+                    }
+                }
+#endif
             }
         }
+
+#if !NET_CORE
 
         private bool IsValidIdMember(BsonClassMap classMap, MemberInfo member)
         {
@@ -118,5 +164,6 @@ namespace MongoDB.Bson.Serialization.Conventions
             }
             return true;
         }
+#endif
     }
 }

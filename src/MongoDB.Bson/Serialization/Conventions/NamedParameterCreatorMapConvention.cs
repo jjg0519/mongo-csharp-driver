@@ -61,6 +61,8 @@ namespace MongoDB.Bson.Serialization.Conventions
         private MemberInfo FindMatchingArgument(Type classType, ParameterInfo parameter)
         {
             MemberInfo argument;
+
+#if !NET_CORE
             if ((argument = Match(classType, MemberTypes.Property, BindingFlags.Public, parameter)) != null)
             {
                 return argument;
@@ -77,6 +79,18 @@ namespace MongoDB.Bson.Serialization.Conventions
             {
                 return argument;
             }
+#else
+            if ((argument = Match(classType, BindingFlags.Public, parameter)) != null)
+            {
+                return argument;
+            }
+
+            if ((argument = Match(classType, BindingFlags.NonPublic, parameter)) != null)
+            {
+                return argument;
+            }
+#endif
+
             return null;
         }
 
@@ -115,6 +129,7 @@ namespace MongoDB.Bson.Serialization.Conventions
             return null;
         }
 
+#if !NET_CORE
         private MemberInfo Match(Type classType, MemberTypes memberType, BindingFlags visibility, ParameterInfo parameter)
         {
             var bindingAttr = BindingFlags.IgnoreCase | BindingFlags.Instance;
@@ -125,5 +140,26 @@ namespace MongoDB.Bson.Serialization.Conventions
             }
             return null;
         }
+#else
+        private MemberInfo Match(Type classType, BindingFlags visibility, ParameterInfo parameter)
+        {
+            var bindingAttr = BindingFlags.IgnoreCase | BindingFlags.Instance;
+            var field = classType.GetField(parameter.Name, bindingAttr | visibility);
+            if (field != null && GetMemberType(field) == parameter.ParameterType)
+            {
+                return field;
+            }
+            else
+            {
+                var property = classType.GetProperty(parameter.Name, bindingAttr | visibility);
+                if (property != null && GetMemberType(property) == parameter.ParameterType)
+                {
+                    return property;
+                }
+            }
+
+            return null;
+        }
+#endif
     }
 }

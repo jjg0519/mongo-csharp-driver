@@ -162,6 +162,7 @@ namespace MongoDB.Bson.IO
             }
         }
 
+#if !NET_CORE
         // methods
         /// <inheritdoc/>
         public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
@@ -182,6 +183,21 @@ namespace MongoDB.Bson.IO
         {
             base.Close(); // base class will call Dispose
         }
+
+        /// <inheritdoc/>
+        public override int EndRead(IAsyncResult asyncResult)
+        {
+            ThrowIfDisposed();
+            return _stream.EndRead(asyncResult);
+        }
+
+        /// <inheritdoc/>
+        public override void EndWrite(IAsyncResult asyncResult)
+        {
+            ThrowIfDisposed();
+            _stream.EndWrite(asyncResult);
+        }
+#endif
 
         /// <inheritdoc/>
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
@@ -205,20 +221,6 @@ namespace MongoDB.Bson.IO
                 _disposed = true;
             }
             base.Dispose(disposing);
-        }
-
-        /// <inheritdoc/>
-        public override int EndRead(IAsyncResult asyncResult)
-        {
-            ThrowIfDisposed();
-            return _stream.EndRead(asyncResult);
-        }
-
-        /// <inheritdoc/>
-        public override void EndWrite(IAsyncResult asyncResult)
-        {
-            ThrowIfDisposed();
-            _stream.EndWrite(asyncResult);
         }
 
         /// <inheritdoc/>

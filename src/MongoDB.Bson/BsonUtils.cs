@@ -16,6 +16,7 @@
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 namespace MongoDB.Bson
 {
@@ -25,15 +26,16 @@ namespace MongoDB.Bson
     /// </summary>
     public static class BsonUtils
     {
-
         // public static methods
         /// <summary>
         /// Gets a friendly class name suitable for use in error messages.
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>A friendly class name.</returns>
+#if !NET_CORE
         public static string GetFriendlyTypeName(Type type)
         {
+
             if (!type.IsGenericType)
             {
                 return type.Name;
@@ -49,6 +51,26 @@ namespace MongoDB.Bson
             sb.Append(">");
             return sb.ToString();
         }
+#else  
+        public static string GetFriendlyTypeName(Type type)
+        {
+
+            if (!type.GetTypeInfo().IsGenericType)
+            {
+                return type.Name;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendFormat("{0}<", Regex.Replace(type.Name, @"\`\d+$", ""));
+            foreach (var typeParameter in type.GetTypeInfo().GetGenericParameterConstraints())
+            {
+                sb.AppendFormat("{0}, ", GetFriendlyTypeName(typeParameter));
+            }
+            sb.Remove(sb.Length - 2, 2);
+            sb.Append(">");
+            return sb.ToString();
+        }             
+#endif    
 
         /// <summary>
         /// Parses a hex string into its equivalent byte array.

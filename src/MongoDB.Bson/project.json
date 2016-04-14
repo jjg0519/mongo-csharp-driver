@@ -1,0 +1,27 @@
+{
+	"version": "2.2.3",
+	"compilationOptions": {
+		"emitEntryPoint": false,
+		"debugType": "portable"
+	},
+
+	"dependencies": {
+		"NETStandard.Library": "1.0.0-rc3-23829",
+        "MongoDB.Shared":"*"
+	},
+
+	"frameworks": {
+		"dnxcore50": {
+			"dependencies": {
+                "System.Dynamic.Runtime":"4.0.11-rc3-23829",
+                "System.Runtime.Serialization.Primitives": "4.1.0-rc3-23829",
+                "System.Security.Cryptography.Algorithms": "4.0.0-rc3-23829",
+                "System.Threading.Thread": "4.0.0-rc3-23829",
+                "System.Collections.NonGeneric":"4.0.1-rc3-23829"				
+			},
+			"compilationOptions": {
+				"define": [ "NET_CORE" ]
+			}
+		}
+	}
+}

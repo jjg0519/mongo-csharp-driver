@@ -20,7 +20,7 @@ namespace MongoDB.Bson
     /// <summary>
     /// Indicates that an attribute restricted to one member has been applied to multiple members.
     /// </summary>
-    [Serializable]
+    //[Serializable]
     public class DuplicateBsonMemberMapAttributeException : BsonException
     {
         // constructors 
@@ -43,6 +43,7 @@ namespace MongoDB.Bson
         {
         }
 
+#if !NET_CORE
         /// <summary>
         /// Initializes a new instance of the <see cref="DuplicateBsonMemberMapAttributeException" /> class.
         /// </summary>
@@ -54,5 +55,6 @@ namespace MongoDB.Bson
             : base(info, context)
         {
         }
+#endif        
     }
 }

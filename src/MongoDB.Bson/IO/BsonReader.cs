@@ -275,7 +275,19 @@ namespace MongoDB.Bson.IO
                 var endPosition = memoryStream.Position;
                 bsonWriter.WriteEndDocument();
 
+#if !NET_CORE
                 var buffer = new ByteArrayBuffer(memoryStream.GetBuffer(), (int)memoryStream.Length, isReadOnly: true);
+#else
+                ArraySegment<byte> tmpBuffer = null;
+                if(memoryStream.TryGetBuffer(out tmpBuffer))
+                {
+                    var buffer = new ByteArrayBuffer(tmpBuffer.Array, (int)memoryStream.Length, isReadOnly: true);                    
+                }
+                else
+                {
+                    throw new BsonException("ReadRawBsonArray failed.");
+                }
+#endif             
                 return new ByteBufferSlice(buffer, (int)startPosition, (int)(endPosition - startPosition));
             }
         }

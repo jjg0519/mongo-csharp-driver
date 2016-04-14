@@ -1,4 +1,4 @@
-﻿/* Copyright 2010-2016 MongoDB Inc.
+﻿/* Copyright 2010-2015 MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -14,7 +14,11 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace MongoDB.Bson.IO
 {
@@ -124,7 +128,7 @@ namespace MongoDB.Bson.IO
             }
             if (!__validBsonTypes[b])
             {
-                var message = string.Format("Detected unknown BSON type \"\\x{0:x2}\". Are you using the latest driver version?", b);
+                string message = string.Format("Invalid BsonType: {0}.", b);
                 throw new FormatException(message);
             }
             return (BsonType)b;
